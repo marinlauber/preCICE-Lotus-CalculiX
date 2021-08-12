@@ -33,9 +33,9 @@ The fluid is gradually accelerated from zero to one using an hyperbolic profile.
 
 An analytical expression for the blade deflection has been derived in [Luhar and Nepf](https://doi.org/10.4319/lo.2011.56.6.2003)
 
-$$
--\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*} = Ca \int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta d\hat{s}
-$$
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?-\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" title="-\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*} = Ca \int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta d\hat{s}" /></a>
+
 
 The results and the analytical solution are shown below
 
