@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="(%Severity% > debug) and not (%Rank% != 0)"
+      format="Lotus-CalculiX:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <solver-interface dimensions="3">
+    <data:vector name="Forces"/>
+    <data:vector name="DisplacementDeltas"/>
+
+    <mesh name="Fluid-Mesh-Nodes">
+      <use-data name="DisplacementDeltas"/>
+    </mesh>
+
+    <mesh name="Fluid-Mesh-Faces">
+      <use-data name="Forces"/>
+    </mesh>
+
+    <mesh name="Solid-Mesh">
+      <use-data name="DisplacementDeltas"/>
+      <use-data name="Forces"/>
+    </mesh>
+
+    <participant name="Lotus">
+      <use-mesh name="Fluid-Mesh-Nodes" provide="yes"/>
+      <use-mesh name="Fluid-Mesh-Faces" provide="yes"/>
+      <use-mesh name="Solid-Mesh" from="Calculix"/>
+      <write-data name="Forces" mesh="Fluid-Mesh-Faces"/>
+      <read-data  name="DisplacementDeltas" mesh="Fluid-Mesh-Nodes"/>
+      <mapping:rbf-thin-plate-splines
+	      direction="write"
+	      from="Fluid-Mesh-Faces" 
+        to="Solid-Mesh"
+        constraint="conservative"
+        x-dead="true"/>
+      <mapping:rbf-thin-plate-splines
+	      direction="read"
+	      from="Solid-Mesh" 
+       	to="Fluid-Mesh-Nodes"
+	      constraint="consistent"
+        x-dead="true"/>
+    </participant>
+
+    <participant name="Calculix">
+      <use-mesh name="Solid-Mesh" provide="yes"/>
+      <use-mesh name="Fluid-Mesh-Faces" from="Lotus" />
+      <write-data name="DisplacementDeltas" mesh="Solid-Mesh"/>
+      <read-data  name="Forces" mesh="Solid-Mesh"/>
+    </participant>
+
+    <m2n:sockets from="Lotus" to="Calculix" exchange-directory=".."/>
+
+    <coupling-scheme:serial-explicit>
+      <participants first="Lotus" second="Calculix"/>
+      <max-time value="1000.0" />
+      <time-window-size value="2.0" method="fixed" />
+      <exchange data="Forces" mesh="Solid-Mesh" from="Lotus" to="Calculix"/>
+      <exchange data="DisplacementDeltas" mesh="Solid-Mesh" from="Calculix" to="Lotus"/>
+    </coupling-scheme:serial-explicit>
+
+  </solver-interface>
+</precice-configuration>
