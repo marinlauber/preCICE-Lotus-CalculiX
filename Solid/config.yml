@@ -5,6 +5,6 @@ participants:
         - nodes-mesh: Solid-Mesh
           patch: interface
           read-data: [Forces]
-          write-data: [DisplacementDeltas]
+          write-data: [Displacements]
           
 precice-config-file: ../precice-config.xml

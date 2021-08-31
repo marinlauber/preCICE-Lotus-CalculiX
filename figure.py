@@ -4,31 +4,16 @@
 import numpy as np
 import vtk
 import matplotlib.pyplot as plt
-import matplotlib.tri as mtri
 from scipy.sparse import diags
+import lotus
 
 plt.style.use("Journal")
 
-def read_file(fname):
-    reader = vtk.vtkXMLUnstructuredGridReader()
-    reader.SetFileName(fname)
-    reader.Update()
-    data = reader.GetOutput()
-    vtkData = data.GetPoints().GetData()
-    Npoints = data.GetPointData().GetNumberOfTuples()
-
-    p = np.array(data.GetPointData().GetArray("Pressure")).reshape((Npoints))
-    v = np.array(data.GetPointData().GetArray("Velocity")).reshape((Npoints,3))
-    coords = np.array([vtkData.GetTuple3(x) for x in range(Npoints)])
-    connectiv = []
-
-    for i in range(data.GetNumberOfCells()):
-        connectiv.append([data.GetCell(i).GetPointIds().GetId(j)
-            for j in range(data.GetCell(i).GetPointIds().GetNumberOfIds())])
-
-    connectiv = np.array(connectiv, dtype=np.float64)
-
-    return coords, connectiv, p, np.transpose(v)
+def vorticity(u,v,x,y):
+    omega = np.zeros_like(u)
+    omega[1:-1,1:-1] = 0.25*((v[2:,1:-1]+v[2:,2:]-v[:-2,1:-1]-v[:-2,2:])-
+                             (u[1:-1,2:]+u[2:,2:]-u[1:-1,:-2]-u[2:,:-2]))
+    return omega
 
 def xy_to_theta(x, y):
     theta = np.zeros_like(x)
@@ -73,13 +58,8 @@ def cm(x): return x/2.56
 
 # data from simulation
 rho = 1.; U =1.
-L=1.; b=L/64.; d=L/20
-CD = 1.
-
-# solid
-E = 20000; I = b*d**3/12
-Ca =rho*CD*b*U**2*L**3 / (2*E*I)
-print('Cauchy Number (Gosselin) : %.4f' % Ca)
+L=64; b=6.4; d=3.2
+CD = 1.95
 
 # numerical parameters
 N = 2**5
@@ -93,40 +73,53 @@ ddx = diags([1, -2, 1], [-1, 0, 1], shape=(N,N)).toarray()/ds**2
 ddx[ 0,:]=0.; ddx[ 0, 0]=1.
 ddx[-1,:]=0.; ddx[-1,-1]=1.
 
-NN = 100
-tri, connectivity, p, v  = read_file("Fluid/dat/interF."+str(NN)+".vtu")
+# plot results
+plt.figure(figsize=(cm(6.),cm(6.)))
 
-# select on edge only at z=6.4
-dat = tri[np.isclose(tri[:,2],1.0,atol=1e-2)]
+for i,E in enumerate([40000,20000]):
 
-plt.figure(figsize=(cm(8),cm(8)))
-plt.plot(dat[:,0]/64.,dat[:,1]/64., lw=0.75, label="Lotus-CalculiX")
+    tri,_,_,_  = lotus.read_vtu("interF."+str(E)+".vtu")
+    dat = tri[np.isclose(tri[:,2],0.0,atol=1e-2)]
+    plt.plot(dat[:,0]/L, dat[:,1]/L, '-C0', alpha=0.5+(0.5*i), lw=2,
+            label=rf"$Ca=%.1f$" % (1.5*(i+1)))
 
-resid = 1.; k=0
-while resid>1e-5:
+for i,E in enumerate([40000,20000]):
+    # solid
+    I = b*d**3/12
+    # Ca = rho*CD*b*U**2*L**3 / (2*E*I)
+    Ca = rho*U**2*L**4 / (16*E*I)
+    print('Cauchy Number (Gosselin) : %.4f' % Ca)
 
-    # cpmpute fluid loading
-    integral = Ca*FluidForce(theta, s, ds)
+    resid = 1.; k=0
+    while resid>1e-5:
 
-    # apply boundary conditions, as explicit solution
-    integral[0] = 0.          # Homogeneous Dirichlet at root
-    integral[-1] = -theta[-2] # Homogeneous Neumann at tip
+        # cpmpute fluid loading
+        integral = Ca*FluidForce(theta, s, ds)
 
-    # solve linear system
-    res = np.linalg.solve(ddx, integral)
+        # apply boundary conditions, as explicit solution
+        integral[0] = 0.          # Homogeneous Dirichlet at root
+        integral[-1] = -theta[-2] # Homogeneous Neumann at tip
 
-    # prepare next iteration
-    resid = Linf(theta+res)
-    theta = -res
-    k+=1
+        # solve linear system
+        res = np.linalg.solve(ddx, integral)
 
-plt.plot(*theta_to_xy(theta, s), 'xk', lw=0.1, ms=2.5, label="Analytical")
+        # prepare next iteration
+        resid = Linf(theta+res)
+        theta = -res
+        k+=1
+    if i==0:
+        plt.plot(*theta_to_xy(theta, s), 'xk', lw=0.5, ms=3, label="Analytical")
+    else:
+        plt.plot(*theta_to_xy(theta, s), 'xk', lw=0.5, ms=3)
+
+
 print("Number of iteration for convergence : ", k)
 print("Effective blade length              : %.2f" % effective_length(theta, s))
 print("Effective blade height              : %.2f" % effective_height(theta, s))
-plt.legend()
-plt.axis([-0.2, 1, 0, 1.1])
+plt.legend(title="Numerical", loc=4)
+plt.axis([-0.1, 0.8, 0, 1.1])
 plt.gca().set_aspect('equal', adjustable='box')
 plt.xlabel("x")
 plt.ylabel("y")
 plt.savefig("deflection.png")
+plt.close()

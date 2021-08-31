@@ -7,6 +7,6 @@ rm -f fort.*\
    lotus\
    lotus.o\
    precice-Lotus-events.json\
-   precice-Lotus-events-summary.log
+   *.log
 
 rm -r -f ../precice-run/

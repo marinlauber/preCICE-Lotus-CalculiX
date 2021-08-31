@@ -7,4 +7,7 @@ rm -f *.12d\
    precice-Calculix-events.json\
    precice-Calculix-events-summary.log\
    *.vtu\
-   *.pvd
+   *.pvd\
+   *.log
+
+rm -rf data
