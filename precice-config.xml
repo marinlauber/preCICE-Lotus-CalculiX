@@ -64,13 +64,19 @@
     </coupling-scheme:serial-explicit> -->
 
     <coupling-scheme:parallel-implicit>
-      <participants first="Lotus" second="Calculix" />
-      <max-time value="20.0" />
-      <time-window-size value="1.0"/>
+      <participants first="Lotus" second="Calculix"/>
+      <max-time value="2000.0" />
+      <time-window-size value="2.0"/>
       <max-iterations value="15"/>
-      <relative-convergence-measure limit="5e-2" data="Displacements" mesh="Solid-Mesh"/>
+      <relative-convergence-measure limit="5e-1" data="Displacements" mesh="Solid-Mesh"/>
+      <relative-convergence-measure limit="5e-1" data="Forces" mesh="Solid-Mesh"/>
       <exchange data="Forces" mesh="Solid-Mesh" from="Lotus" to="Calculix"/>
       <exchange data="Displacements" mesh="Solid-Mesh" from="Calculix" to="Lotus"/>
+      <acceleration:aitken>
+        <data name="Forces" mesh="Solid-Mesh"/>
+        <data name="Displacements" mesh="Solid-Mesh"/>
+        <initial-relaxation value="0.08"/>
+      </acceleration:aitken>
     </coupling-scheme:parallel-implicit>
 
   </solver-interface>

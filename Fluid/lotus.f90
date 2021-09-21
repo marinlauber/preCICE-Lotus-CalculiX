@@ -13,7 +13,7 @@ program Lotus
 ! -- Define parameter, declare variables
   real,parameter         :: D = 64,   Re = 1490          ! diameter and Reynolds number
   integer                :: n(3)                         ! numer of points
-  integer                :: b(3) = (/2,2,1/)             ! MPI blocks (product must equal n_procs)
+  integer                :: b(3) = (/2,1,1/)             ! MPI blocks (product must equal n_procs)
   logical                :: root                         ! root processor
   real                   :: dt_precice,dt_lotus          ! time step
   real,allocatable       :: displacements(:),forces(:)   ! arrays for transfer
@@ -43,7 +43,7 @@ program Lotus
   else
     n(3) = 1
   end if
-  
+
 ! build geometry, no scaling can be applied!
   call geom%init(fname='../Solid/geom.inp')
   call flow%init(n/b,geom,V=(/1.,0.,0./),nu=D/Re)
@@ -59,12 +59,12 @@ program Lotus
   if(root) print *,'------------------------------------------------'
 
   ! writing initial data
-  ! if(precice%is_action_required(writeInitialData)) then
-  !   call flow%writeItCheckp
-  !   call geom%writeItCheckp
-  !   call precice%mark_action_fulfilled(writeInitialData)
-  ! end if
-  ! call precice%initialize_data
+  if(precice%is_action_required(writeInitialData)) then
+    call flow%writeItCheckp
+    call geom%writeItCheckp
+    call precice%mark_action_fulfilled(writeInitialData)
+  end if
+  call precice%initialize_data
 
   ! solve  
   do while(precice%ongoing())
@@ -117,7 +117,7 @@ program Lotus
     if(precice%is_time_window_complete()) then
       call geom%writeFlex(flow,flow%time)
       call flow%write(geom,lambda=.true.,write_vti=.false.)
-      call display(flow%velocity%vorticity_Z(),'out_vort',lim=0.2)
+      call display(flow%velocity%vorticity_Z(),'out_vort',lim=0.5)
     end if
 
   end do
