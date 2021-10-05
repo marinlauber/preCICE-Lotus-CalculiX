@@ -37,13 +37,15 @@
 	      from="Fluid-Mesh-Faces" 
         to="Solid-Mesh"
         constraint="conservative"
-        x-dead="true"/>
+        x-dead="true"
+        timing="initial"/>
       <mapping:rbf-thin-plate-splines
 	      direction="read"
 	      from="Solid-Mesh" 
        	to="Fluid-Mesh-Nodes"
 	      constraint="consistent"
-        x-dead="true"/>
+        x-dead="true"
+        timing="initial"/>
     </participant>
 
     <participant name="Calculix">
@@ -55,29 +57,31 @@
 
     <m2n:sockets from="Lotus" to="Calculix" exchange-directory=".."/>
 
-    <!-- <coupling-scheme:serial-explicit>
+    <coupling-scheme:serial-explicit>
       <participants first="Lotus" second="Calculix"/>
-      <max-time value="2000.0" />
-      <time-window-size value="2.0" method="fixed" />
+      <max-time value="200.0"/>
+      <time-window-size value="-1" method="first-participant"/>
       <exchange data="Forces" mesh="Solid-Mesh" from="Lotus" to="Calculix"/>
       <exchange data="Displacements" mesh="Solid-Mesh" from="Calculix" to="Lotus"/>
-    </coupling-scheme:serial-explicit> -->
+    </coupling-scheme:serial-explicit>
 
-    <coupling-scheme:parallel-implicit>
+    <!-- <coupling-scheme:parallel-implicit>
       <participants first="Lotus" second="Calculix"/>
-      <max-time value="2000.0" />
-      <time-window-size value="2.0"/>
-      <max-iterations value="15"/>
-      <relative-convergence-measure limit="5e-1" data="Displacements" mesh="Solid-Mesh"/>
-      <relative-convergence-measure limit="5e-1" data="Forces" mesh="Solid-Mesh"/>
-      <exchange data="Forces" mesh="Solid-Mesh" from="Lotus" to="Calculix"/>
-      <exchange data="Displacements" mesh="Solid-Mesh" from="Calculix" to="Lotus"/>
+      <max-time value="0.1" />
+      <time-window-size value="0.1"/>
+      <exchange data="Displacements" mesh="Solid-Mesh" from="Calculix" to="Lotus"
+                initialize="false"/>
+      <exchange data="Forces" mesh="Solid-Mesh" from="Lotus" to="Calculix"
+                initialize="false"/>
+      <max-iterations value="50"/>
+      <relative-convergence-measure limit="5e-3" data="Displacements" mesh="Solid-Mesh"/>
+      <relative-convergence-measure limit="5e-3" data="Forces" mesh="Solid-Mesh"/>
       <acceleration:aitken>
-        <data name="Forces" mesh="Solid-Mesh"/>
         <data name="Displacements" mesh="Solid-Mesh"/>
-        <initial-relaxation value="0.08"/>
+        <data name="Forces" mesh="Solid-Mesh"/>
+        <initial-relaxation value="0.01"/>
       </acceleration:aitken>
-    </coupling-scheme:parallel-implicit>
+    </coupling-scheme:parallel-implicit> -->
 
   </solver-interface>
 </precice-configuration>
