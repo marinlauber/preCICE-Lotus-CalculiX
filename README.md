@@ -34,7 +34,11 @@ The fluid is gradually accelerated from zero to one using an hyperbolic profile.
 An analytical expression for the blade deflection has been derived in [Luhar and Nepf](https://doi.org/10.4319/lo.2011.56.6.2003)
 
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?-\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" title="-\frac{d\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*} = Ca \int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta d\hat{s}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{d^2\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?-\frac{d^2\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" title="-\frac{d^2\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*} = Ca \int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta d\hat{s}" /></a>
+
+with the Cauchy number $Ca$ defined as
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=Ca&space;=&space;\frac{1}{2}\frac{\rho&space;C_dbU^2l^3}{EI}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Ca&space;=&space;\frac{1}{2}\frac{\rho&space;C_dbU^2l^3}{EI}" title="Ca = \frac{1}{2}\frac{\rho C_dbU^2l^3}{EI}" /></a>
 
 
 The results and the analytical solution are shown below

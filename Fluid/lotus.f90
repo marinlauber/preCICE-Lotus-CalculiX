@@ -6,21 +6,22 @@ program Lotus_preCICE
   use gridMod,    only: xg
   use imageMod,   only: display
   use geom_shape
-  use ioMod
+  use geom_global,only: pi
  implicit none
 !
 ! -- Define parameter, declare variables
-  real,parameter         :: D = 32, Re = 5000   ! diameter and Reynolds number
-  integer                :: n(3) = D*(/4,2,02/)  ! numer of points
+  real,parameter         :: D = 64, Re = 1500   ! diameter and Reynolds number
+  integer                :: n(3) = D*(/4,2,2/)  ! numer of points
   integer                :: b(3) = (/2,2,1/)    ! MPI blocks (product must equal n_procs)
   logical                :: root                ! root processor
   type(fluid)            :: flow
   type(flexBody)         :: geom
-  real                   :: force(3),time,dt_precice,dt_lotus
-  real,allocatable       :: displacements(:),forces(:),vertex(:)
+  real                   :: force(3),time,dt_precice,dt_lotus,U,t,a0=0.25
+  real,allocatable       :: displacements(:),forces(:),displEstimate(:)
   type(precice_coupling) :: precice 
-  integer                :: rank,commsize,ndims=2,iter=0,every=1
-
+  integer                :: rank,commsize,ndims=2,iter=0,every=32
+!
+! thin bodies
   eps=0.5
 !
 ! -- Initialize MPI (if MPI is OFF, b is set to 1)
@@ -38,32 +39,30 @@ program Lotus_preCICE
   else
     n(3) = 1
   end if
-
+!
 ! build geometry
   call geom%init(fname='../Solid/geom.inp')
-  call flow%init(n/b,geom,V=(/1.,0.,0./),nu=D/Re) 
+  call flow%init(n/b,geom,V=(/0.,0.,0./),nu=D/Re,endStep=.false.) 
   call precice%init(geom,rank,commsize)
   dt_precice = precice%timestep()
-
+!
 !  allocate stuff
   allocate(displacements(3*geom%numberOfVertices))
   allocate(forces(3*geom%numberOfVertices))
-  ! allocate(vertex(3*geom%numberOfVertices))
-  ! call geom%getVertexCoords(vertex)
-  flow%dt = 0.5
+  allocate(displEstimate(3*geom%numberOfVertices))
   
   if(root) print*, 'y+: ', sqrt(0.026/Re**(1./7.)/2.)/(D/Re)
   if(root) print *,'            Setting up the Coupling             '
   if(root) print *,'------------------------------------------------'
-
-  ! call flow%update(geom)
+!
+  flow%dt = 0.25
   call flow%write(geom,write_vti=.false.)
   call geom%writeFlex(flow,flow%time)
-
-  ! writing initial data
+!
+! -- writing initial data
   if(precice%is_action_required(writeInitialData)) then
-    if(root) write(*,*) 'Writing initial forces'
-    forces = geom%getFacesForces(flow)
+    call flow%update(geom)
+    forces = 0.0
     call precice%write(forces)
     call precice%mark_action_fulfilled(writeInitialData)
   end if
@@ -71,11 +70,10 @@ program Lotus_preCICE
   
   ! read initialized displacements
   if(precice%is_read_data_available()) then
-    if(root) write(*,*) 'Reading initial displacements'
     call precice%read(displacements)
     call geom%updateFlex(displacements,flow%dt)
   end if
-
+  
   if(root) print *,'            Starting time update loop           '
   if(root) print *,'------------------------------------------------'
 
@@ -96,14 +94,13 @@ program Lotus_preCICE
     if(precice%is_read_data_available()) then
       call precice%read(displacements)
       call geom%updateFlex(displacements,dt_precice)
+    ! else
+    !   displacements = displacements+dt_lotus/dt_precice*displEstimate
+    !   call geom%updateFlex(displacements,dt_lotus)
     end if
 
-    ! try update to see what the pressure does
-    ! time = flow%time+flow%dt
-    ! call bend(vertex,displacements,time)
-    ! call geom%updateFlex(displacements,flow%dt)
-
-    call flow%update(geom)
+    U = velocity((flow%time+real(dt_lotus))/D) 
+    call flow%update(geom,V=[U,0.,0.])
 
     ! get the forces on the structure
     if(precice%is_write_data_required(dt_lotus)) then
@@ -123,14 +120,14 @@ program Lotus_preCICE
     else
       ! if we do not need, we can finalize the simulations
       call flow%endTimeStep()
-      force = geom%getForces(flow)/D**2
-      write(9,'(f10.4,f8.4,3e16.8)') flow%time/D,flow%dt,force
       iter = iter + 1
     end if
     
-    if(precice%is_time_window_complete().and.mod(iter,every).eq.0) then
-      call flow%write(geom,write_vti=.false.)
-      call geom%writeFlex(flow,flow%time)
+    if(precice%is_time_window_complete()) then
+      force = geom%getForces(flow)/D**2
+      write(9,'(f10.4,f8.4,3e16.8)') flow%time/D,flow%dt,force
+      if(mod(iter,every).eq.0) call flow%write(geom,write_vti=.false.)
+      if(mod(iter,every).eq.0) call geom%writeFlex(flow,flow%time)
     end if
   end do
 
@@ -141,21 +138,13 @@ program Lotus_preCICE
   call mympi_end
 
  contains
-
-  subroutine bend(vertex,displ,time)
-    use geom_global, only:pi
-    real,intent(inout) :: vertex(:),displ(:)
-    real,intent(inout) :: time
-    real :: r
-    integer :: i,k,len
-    displ = 0.0
-    len = int(size(displ)/3.)
-    do i=1,len
-      k = 3*(i-1)
-      r = sqrt(sum((vertex(k+2:k+2)+16)**2))
-      displ(k+1) = sin(pi*time/(D))*0.5*D*(r/30)**2
-      displ(k+2) = -abs(sin(pi*time/(D))*0.2*D*(r/30)**2)
-    end do
-  end subroutine bend
+   
+  function velocity(t) result(omega)
+    implicit none
+    real,intent(in) :: t
+    real            :: omega
+    ! omega = 0.5*(1-cos(pi*time))
+    omega = 0.25*t+(1+tanh(31.4*(t-1./0.25)))/2.*(1-0.25*t)
+  end function velocity
 
 end program Lotus_preCICE
