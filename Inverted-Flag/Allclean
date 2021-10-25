@@ -1,0 +1,33 @@
+#!/bin/sh
+
+echo "Cleaning..."
+
+
+# Participant 1: Fluid (Lotus)
+Participant1="Fluid"
+cd ${Participant1}
+    ./clean.sh
+cd ..
+# Remove the log files
+rm -fv ${Participant1}/${Participant1}.log
+
+# Participant 2: Solid1 (calculiX)
+Participant2="Solid"
+cd ${Participant2}
+    ./clean.sh
+cd ..
+
+rm -fv ${Participant2}/${Participant2}.log
+
+# Remove the preCICE-related log files
+echo "Deleting the preCICE log files..."
+rm -fv \
+    precice-*.log \
+    precice-*-events.json
+
+rm -rfv precice-run
+rm -rfv precice-output
+
+
+echo "Cleaning complete!"
+#------------------------------------------------------------------------------
