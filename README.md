@@ -2,14 +2,18 @@
 
 ### Pre-processing
 
-First, the structural model needs to be build. This is done by changing the `geom.geo` and the `calculix.inp` files. Once you have set the correct geometric dimensions, you can generate the mesh using 
+First, the structural model needs to be build. This is done by changing the `geom.geo` and the `generate.py` files. Once you have set the correct geometric dimensions, you can generate the mesh using 
 ```bash
 cd Solid
-python generate.py
+python generate.py -L 64 -K_B 0.15 -m_r 0.5
 ```
-which produces the mesh file (`geom.inp`) required in the `calculix.inp` file.
+which produces the mesh file (`geom.inp`) required and the `calculix.inp` setup file. The additional arguments are used to define the length-scale of the problem, the Cauchy number and the mass ratio
 
-#### Boundary conditions for the structural sub-problem
+<img src="https://latex.codecogs.com/svg.image?K_B&space;=&space;\frac{Et^3}{\rho&space;U_\infty^2&space;L^3},&space;\qquad&space;M_\rho&space;=&space;\frac{\rho_s&space;h}{\rho_f&space;L}" title="K_B = \frac{Et^3}{\rho U_\infty^2 L^3}, \qquad M_\rho = \frac{\rho_s h}{\rho_f L}" />
+
+This automatically generates the boundary file `fixed.nam`.
+
+#### (DEPRECATED) Boundary conditions for the structural sub-problem
 
 You then have to specify the boundary nodes in the `fixed.nam` file. The corresponding boundary conditions are set in the `calculix.inp` file. Here we have a clamped boundary condition on one edge of the plate.
 
@@ -42,7 +46,19 @@ To clean all the files generated, simply clean the repo using
 ./Allclean
 ```
 
-### Post-processing
+### Results
+
+Here is the results of the inverted-flag problem for a period of oscillation. 
+
+<img src="figures/vorticity_0.png" alt="drawing" width="800"/>
+
+We can compute the negative finite time Lyapunov exponent (attracting structures) of the flow field
+
+<video autoplay="autoplay" loop="loop" width="800" height="450" codecs="h264" controls>
+  <source src="figures/nFLTE_inverted_flag.mp4" type="video/mp4">
+</video>
+
+<!-- ### Post-processing
 
 The fluid is gradually accelerated from zero to one using an hyperbolic profile. The resulting fluid field once the structural motion has settled is shown below.
 
@@ -60,4 +76,4 @@ with the Cauchy number $Ca$ defined as
 
 The results and the analytical solution are shown below
 
-<img src="deflection.png" alt="drawing" width="600"/>
+<img src="deflection.png" alt="drawing" width="600"/> -->
