@@ -9,7 +9,24 @@ python generate.py
 ```
 which produces the mesh file (`geom.inp`) required in the `calculix.inp` file.
 
+#### Boundary conditions for the structural sub-problem
+
 You then have to specify the boundary nodes in the `fixed.nam` file. The corresponding boundary conditions are set in the `calculix.inp` file. Here we have a clamped boundary condition on one edge of the plate.
+
+This can be done through the `cgx` pre-processor.
+```bash
+cgx -c geom.inp
+```
+which opens the `cgx` editor. You can then plot all the nodes with their number with `plot na all`. To generate a `fixed.nam` file you have two options, either add by hand the node number that are part of the boundary, or select them by drawing a box around it. This is done by first creating a node list
+```bash
+qadd fixed nam
+```
+then pressing `a` to enter the add mode. To draw a rectangle from which the nodes will be press `r` on each of the opposite corners. Move the rectangle such that all boundary nodes are inside and the press `n+a`. This adds all the nodes to the fixed set.
+You can then exit the selection with `q`. To write the `fixed.nam` file type in
+```bash
+send fixed abqs nam
+```
+This should write the corresponding file.
 
 ### Running the Simulation
 
