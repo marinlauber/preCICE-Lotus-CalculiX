@@ -54,9 +54,7 @@ Here is the results of the inverted-flag problem for a period of oscillation.
 
 We can compute the negative finite time Lyapunov exponent (attracting structures) of the flow field
 
-<video autoplay="autoplay" loop="loop" width="800" height="450" codecs="h264" controls>
-  <source src="figures/nFLTE_inverted_flag.mp4" type="video/mp4">
-</video>
+<img width="800" src=figures/lyapunov_inverted_flag.gif>
 
 <!-- ### Post-processing
 

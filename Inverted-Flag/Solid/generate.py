@@ -10,13 +10,12 @@ def get_E(kappa, L, h, nu=0.):
     return kappa*L**3*12*(1-nu**2)/(h**3)
 
 def to_float(ls):
-    "converts the node id and its coordinates from string to floats"
-    return int(ls[0]),float(ls[1]),float(ls[2]),float(ls[3])
+    return [float(ls[i]) for i in range(len(ls))]
 def to_int(ls):
-    return int(ls[0]),int(ls[1]),int(ls[2]),int(ls[3])
+    return [int(ls[i]) for i in range(len(ls))]
 
 # get the legnth scale if provided
-parser = argparse.ArgumentParser(description='Generates the Finite-lement mesh..')
+parser = argparse.ArgumentParser(description='Generates the Finite-element mesh..')
 parser.add_argument('-L','--lengthscale', help='Length scale of the body')
 parser.add_argument('-Kb','--bending', help='bending cauchy number')
 parser.add_argument('-M','--mass', help='mass ratio')
@@ -59,12 +58,12 @@ output.write("*NODE, NSET=Ninterface\n")
 for l in range(i):
     # get floats
     ids,x,y,z = to_float(lines[l].strip().replace(",","").split())
-    line = "%d, %.8f, %.8f, %.8f \n" % (ids+1,x*L,y*L,z)
+    line = "%d, %.8f, %.8f, %.8f\n" % (ids+1,x*L,y*L,z)
     output.write(line)
 output.write("*ELEMENT, type=S3, ELSET=PLATE\n")
 for l in range(j+1,finish):
     el,n1,n2,n3 = to_int(lines[l].strip().replace(",","").split())
-    line =  "%d, %d, %d, %d \n" % (el,n1+1,n2+1,n3+1)
+    line =  "%d, %d, %d, %d\n" % (el,n1+1,n2+1,n3+1)
     output.write(line)
 
 # prepare boundary node file
