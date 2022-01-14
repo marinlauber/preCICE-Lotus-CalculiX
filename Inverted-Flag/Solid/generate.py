@@ -25,7 +25,7 @@ if (not args.lengthscale):
 else:
     L = float(args.lengthscale)
 if (not args.bending):
-    K_B = 0.15
+    K_B = 0.35
 else:
     K_B = float(args.bending)
 if (not args.mass):
@@ -72,9 +72,9 @@ fixed.write("*NSET,NSET=Nfixed\n")
 # read each line and extract coordinates
 for l in range(i):
     ids,x,y,z = to_float(lines[l].strip().replace(",","").split())
-    r = abs(x-0.008)
+    r = abs(x-0.5)
     if r<1e-2:
-        fixed.write(str(ids+1)+",\n")
+        fixed.write("%d,\n" % (ids+1))
 
 # get the parameters
 thickness=2.56; nu=0.0

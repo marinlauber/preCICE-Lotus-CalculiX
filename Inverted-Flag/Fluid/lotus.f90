@@ -5,7 +5,7 @@ program Lotus_preCICE
   use mympiMod,   only: init_mympi,mympi_end,mympi_rank
   use gridMod,    only: xg
   use imageMod,   only: display
-  use geom_shape
+  use propMod
  implicit none
 !
 ! -- Define parameter, declare variables

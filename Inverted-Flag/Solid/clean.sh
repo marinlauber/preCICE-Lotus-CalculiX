@@ -9,7 +9,5 @@ rm -f *.12d\
       *.vtu\
       *.pvd\
       *.log\
-      *.inp\
-      *.nam
 
 rm -rf data
