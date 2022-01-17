@@ -5,7 +5,7 @@ export OMP_NUM_THREADS=1
 export CCX_NPROC_EQUATION_SOLVER=1
 
 # making sure the solver is uptodate
-make -C $CCXHOME
+# make -C $CCXHOME
 
 # run the exe
 echo running

@@ -126,7 +126,6 @@ program Lotus_preCICE
       write(9,'(f10.4,f8.4,3e16.8)') flow%time/D,flow%dt,force
       if(mod(iter,every).eq.0) call flow%write(geom,write_vti=.false.)
       if(mod(iter,every).eq.0) call geom%writeFlex(flow,flow%time)
-      flow%pressure = 0.0
     end if
   end do
 

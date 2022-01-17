@@ -79,13 +79,13 @@ for l in range(i):
 # get the parameters
 thickness=2.56; nu=0.0
 # effective stiffness is less
-E = get_E(K_B, L/2, thickness)
+E = get_E(K_B, L, thickness)
 density = get_rho_s(m_r, L, thickness)
 
 # generate calcilux.inp file
 calculix = open("calculix.inp", "w")
 calculix.write("*INCLUDE, INPUT=geom.inp\n*INCLUDE, INPUT=fixed.nam\n")
-calculix.write("*BOUNDARY\n Nfixed, 1, 3, 0.0\n Ninterface, 3, 4, 0.0\n")
+calculix.write("*BOUNDARY\n Nfixed, 1, 6, 0.0\n Ninterface, 3, 4, 0.0\n")
 calculix.write("*MATERIAL,NAME=MEMBRANE\n")
 calculix.write("*ELASTIC\n %.1f, %.2f\n" % (E, nu))
 calculix.write("*DENSITY\n %.2f\n" % density)

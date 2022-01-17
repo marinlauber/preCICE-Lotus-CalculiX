@@ -1,11 +1,11 @@
 *INCLUDE, INPUT=geom.inp
 *INCLUDE, INPUT=fixed.nam
 *BOUNDARY
- Nfixed, 1, 3, 0.0
+ Nfixed, 1, 6, 0.0
  Ninterface, 3, 4, 0.0
 *MATERIAL,NAME=MEMBRANE
 *ELASTIC
- 8203.1, 0.00
+ 65625.0, 0.00
 *DENSITY
  12.50
 *DAMPING, ALPHA=0.0, BETA=0.0
