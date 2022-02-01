@@ -15,7 +15,7 @@ lines = input.readlines()[3:]
 for k in range(len(lines)):
     if(len(lines[k])>19 and lines[k].strip()[15:19]==" E N"):
         i = k
-    if(len(lines[k])>19 and lines[k].strip()[15:19]=="CPS3"):
+    if(len(lines[k])>19 and lines[k].strip()[15:18]=="CPS"):
         j = k
 
 # write to new file

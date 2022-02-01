@@ -67,23 +67,23 @@
 
     <coupling-scheme:parallel-implicit>
       <participants first="Lotus" second="Calculix"/>
-      <max-time value="5.0" />
-      <time-window-size value="0.25"/>
+      <max-time value="500.0" />
+      <time-window-size value="0.1"/>
       <exchange data="Displacements" mesh="Solid-Mesh" from="Calculix" to="Lotus"
                 initialize="true"/>
       <exchange data="Forces" mesh="Solid-Mesh" from="Lotus" to="Calculix"
                 initialize="true"/>
       <max-iterations value="50"/>
-      <relative-convergence-measure limit="5e-3" data="Displacements" mesh="Solid-Mesh"/>
-      <relative-convergence-measure limit="5e-3" data="Forces" mesh="Solid-Mesh"/>
+      <relative-convergence-measure limit="1e-4" data="Displacements" mesh="Solid-Mesh"/>
+      <relative-convergence-measure limit="1e-4" data="Forces" mesh="Solid-Mesh"/>
       <acceleration:IQN-ILS>
         <data name="Displacements" mesh="Solid-Mesh" />
         <data name="Forces" mesh="Solid-Mesh" />
         <preconditioner type="residual-sum" />
         <filter type="QR2" limit="2.e-2" />
-        <initial-relaxation value="0.1" />
+        <initial-relaxation value="0.05" />
         <max-used-iterations value="100" />
-        <time-windows-reused value="20" />
+        <time-windows-reused value="15" />
       </acceleration:IQN-ILS>
     </coupling-scheme:parallel-implicit>
 

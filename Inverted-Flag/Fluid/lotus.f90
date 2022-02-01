@@ -74,12 +74,6 @@ program Lotus_preCICE
 
   do while(precice%ongoing())
 
-    ! Lotus-CalculiX:ERROR:  The quasi-Newton update contains NaN values. This means that the quasi-Newton 
-    ! acceleration failed to converge. When writing your own adapter this could indicate that you give wrong 
-    ! information to preCICE, such as identical data in succeeding iterations. Or you do not properly save 
-    ! and reload checkpoints. If you give the correct data this could also mean that the coupled problem is 
-    ! too hard to solve. Try to use a QR filter or increase its threshold (larger epsilon).
-
     ! set time-step, here we limit the CFL of the fluid
     dt_lotus = min(dt_precice,flow%dt)
     flow%dt = dt_lotus

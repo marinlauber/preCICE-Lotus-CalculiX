@@ -5,19 +5,21 @@ program Lotus_preCICE
   use mympiMod,   only: init_mympi,mympi_end,mympi_rank
   use gridMod,    only: xg
   use imageMod,   only: display
+  ! use geom_global
   use propMod
  implicit none
 !
 ! -- Define parameter, declare variables
-  real,parameter         :: D = 64, Re = 1500   ! diameter and Reynolds number
-  integer                :: n(3) = D*(/4,2,2/)  ! numer of points
+  real,parameter         :: D = 64, Re = 1000    ! diameter and Reynolds number
+  integer                :: n(3) = D*(/4,3,2/)  ! numer of points
   integer                :: b(3) = (/1,1,1/)    ! MPI blocks (product must equal n_procs)
   logical                :: root                ! root processor
-  type(fluid)            :: flow
-  type(flexBody)         :: geom
-  real                   :: force(3),time,U,t,a0=0.25
-  type(precice_coupling) :: precice 
-  integer                :: ndims=2,iter=0,every=32
+  type(fluid)            :: flow                ! a fluid
+  type(flexBody)         :: geom                ! a flexible geometry
+  real                   :: force(3),time       ! helpers
+  type(precice_coupling) :: precice             ! the coupling
+  integer                :: ndims=2,iter=0,every=40
+  real,allocatable       :: vertex(:)
 !
 ! thin bodies
   eps=0.5
@@ -30,30 +32,32 @@ program Lotus_preCICE
 !
   if(root) print *,'       Setting up the grid, body and fluid      '
   if(root) print *,'------------------------------------------------'
-  call xg(1)%stretch(n(1), -8.*D, -0.2*D, .8*D, 16.*D, prnt=root)
-  call xg(2)%stretch(n(2), -0.5*D, -0.5*D, 0.5*D, 8*D, prnt=root)
+  call xg(1)%stretch(n(1), -8.*D, -0.5*D, 2.0*D, 16.*D, prnt=root)
+  call xg(2)%stretch(n(2), -8*D, -0.8*D, 0.8*D, 8*D, prnt=root)
   if(ndims>2)then
     call xg(3)%stretch(n(3), -0.0*D, -0.0*D, 0.6*D, 4*D, prnt=root)
   else
     n(3) = 1
   end if
-!
-! build geometry
+
+  ! build geometry
   call geom%init(fname='../Solid/geom.inp')
-  call flow%init(n/b,geom,V=(/0.,0.,0./),nu=D/Re,endStep=.false.) 
+  call flow%init(n/b,geom,V=(/1.,0.,0./),nu=D/Re,endStep=.false.) 
   call precice%init(geom,rank,commsize)
+  call geom%getVertexCoords(vertex)
   dt_precice = precice%timestep()
 !
-! - start 
+! initalize finishes
   if(root) print*, 'y+: ', sqrt(0.026/Re**(1./7.)/2.)/(D/Re)
   if(root) print *,'            Setting up the Coupling             '
   if(root) print *,'------------------------------------------------'
 !
-  flow%dt = 0.1
+! write initial fields
+  flow%dt = 0.25
   call flow%write(geom,write_vti=.false.)
   call geom%writeFlex(flow,flow%time)
 !
-! -- writing initial data
+! writing initial data
   if(precice%is_action_required(writeInitialData)) then
     call flow%update(geom)
     forces = geom%getFacesForces(flow)
@@ -61,8 +65,8 @@ program Lotus_preCICE
     call precice%mark_action_fulfilled(writeInitialData)
   end if
   call precice%initialize_data
-  
-  ! read initialized displacements
+!
+! read initialized displacements
   if(precice%is_read_data_available()) then
     call precice%read(displacements)
     call geom%updateFlex(displacements,flow%dt)
@@ -72,6 +76,7 @@ program Lotus_preCICE
   if(root) print *,'------------------------------------------------'
 
   do while(precice%ongoing())
+
 
     ! set time-step, here we limit the CFL of the fluid
     dt_lotus = min(dt_precice,flow%dt)
@@ -87,16 +92,15 @@ program Lotus_preCICE
     ! read the actual displacements
     if(precice%is_read_data_available()) then
       call precice%read(displacements)
+      call motion(vertex,displacements,flow%time)
       call geom%updateFlex(displacements,dt_precice)
     end if
 
-    U = velocity((flow%time+real(dt_lotus))/D) 
-    call flow%update(geom,V=[U,0.,0.])
+    call flow%update(geom)
 
     ! get the forces on the structure
     if(precice%is_write_data_required(dt_lotus)) then
       forces = geom%getFacesForces(flow)
-      ! forces = merge(forces*flow%time/D,forces,flow%time<D)
       call precice%write(forces)
     end if
 
@@ -130,13 +134,38 @@ program Lotus_preCICE
   call mympi_end
 
  contains
-   
-  function velocity(t) result(omega)
-    implicit none
-    real,intent(in) :: t
-    real            :: omega
-    ! omega = 0.5*(1-cos(pi*time))
-    omega = 0.25*t+(1+tanh(31.4*(t-1./0.25)))/2.*(1-0.25*t)
-  end function velocity
 
+  subroutine motion(vertex,displ,time)
+    real,intent(inout) :: vertex(:),displ(:)
+    real,intent(in) :: time
+    real :: r,x(3)
+    integer :: i,k,len
+    ! this set what part of the array we move
+    len = 128
+    do i=1,len
+      k = 3*(i-1)
+      x = vertex(k+1:k+3)
+      displ(k+1:k+3) = rotate(x,[0.,0.,0.],alpha(time),3) - x
+    end do
+  end subroutine motion
+
+  real function alpha(time)
+    real,intent(in)    :: time
+    real :: C
+    C = 1 - exp(-time/D/8)
+    alpha = C*pi/8*sin(0.25*pi*time/D)
+  end function
+
+  function rotate(a,cen,alpha,axis) result(b)
+    real,intent(in)    :: a(3),cen(3),alpha
+    integer,intent(in) :: axis
+    integer            :: j,k
+    real               :: cs,ss,b(3),x(3)
+    x = a-cen; b = a
+    j=mod(axis,3)+1; k=mod(j,3)+1
+    b(j) = cos(alpha)*x(j)-sin(alpha)*x(k)
+    b(k) = cos(alpha)*x(k)+sin(alpha)*x(j)
+    b = b + cen
+  end function
+  
 end program Lotus_preCICE
