@@ -1,0 +1,9 @@
+pyproject.toml
+setup.py
+pycalculix/__init__.py
+pycalculix/calculix.py
+pycalculix/test_1.py
+pycalculix.egg-info/PKG-INFO
+pycalculix.egg-info/SOURCES.txt
+pycalculix.egg-info/dependency_links.txt
+pycalculix.egg-info/top_level.txt
