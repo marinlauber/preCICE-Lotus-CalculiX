@@ -31,4 +31,7 @@
 *NODE FILE,OUTPUT=3D
  U
 
+** write restart file
+*RESTART,WRITE
+
 *END STEP

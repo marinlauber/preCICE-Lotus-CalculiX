@@ -43,6 +43,7 @@ program Lotus_preCICE
   call flow%init(n/b,geom,V=(/1.,0.,0./),nu=D/Re,endStep=.false.) 
   call precice%init(geom,rank,commsize)
   dt_precice = precice%timestep()
+  flow%dt = dt_precice
 !
 ! initalize finishes
   if(root) print*, 'y+: ', sqrt(0.026/Re**(1./7.)/2.)/(D/Re)
@@ -50,7 +51,6 @@ program Lotus_preCICE
   if(root) print *,'------------------------------------------------'
 !
 ! write initial fields
-  flow%dt = 0.25
   call flow%write(geom,write_vti=.false.)
   call geom%writeFlex(flow,flow%time)
 !

@@ -67,7 +67,7 @@
 
     <coupling-scheme:parallel-implicit>
       <participants first="Lotus" second="Calculix"/>
-      <max-time value="7860.0" />
+      <max-time value="100.0" />
       <time-window-size value="0.2"/>
       <exchange data="Displacements" mesh="Solid-Mesh" from="Calculix" to="Lotus"
                 initialize="true"/>

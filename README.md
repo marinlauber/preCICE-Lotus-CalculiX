@@ -11,7 +11,7 @@ which produces the mesh file (`geom.inp`) required and the `calculix.inp` setup 
 
 <img src="https://latex.codecogs.com/svg.image?K_B&space;=&space;\frac{Et^3}{\rho&space;U_\infty^2&space;L^3},&space;\qquad&space;M_\rho&space;=&space;\frac{\rho_s&space;h}{\rho_f&space;L}" title="K_B = \frac{Et^3}{\rho U_\infty^2 L^3}, \qquad M_\rho = \frac{\rho_s h}{\rho_f L}" />
 
-This automatically generates the boundary file `fixed.nam`.
+This automatically generates the boundary file `fixed.nam`. But you could specify it manually as well
 
 #### (DEPRECATED) Boundary conditions for the structural sub-problem
 
@@ -25,8 +25,8 @@ which opens the `cgx` editor. You can then plot all the nodes with their number 
 ```bash
 qadd fixed nam
 ```
-then pressing `a` to enter the add mode. To draw a rectangle from which the nodes will be press `r` on each of the opposite corners. Move the rectangle such that all boundary nodes are inside and the press `n+a`. This adds all the nodes to the fixed set.
-You can then exit the selection with `q`. To write the `fixed.nam` file type in
+then pressing `a` to enter the add mode. To draw a rectangle from which the nodes will be selected press `r` on the two opposite corners of the desired rectangle. Move the rectangle such that all boundary nodes are inside and the press `n+a`. This adds all the nodes to the `fixed` set.
+You can then exit the selection with `q`. To write the `fixed.nam` file type
 ```bash
 send fixed abqs nam
 ```
@@ -34,17 +34,58 @@ This should write the corresponding file.
 
 ### Running the Simulation
 
-To run the simulations in parallel, default is np=1 (serial). 
+To run the simulations in serial mode simply use the `runFSI` script in a terminal
 
 ```bash
-./Allrun -parallel np
+runFSI -npF -npS
+```
+where `npF` and `npS` are the fluid and solid parallel decomposition, default is one for both. Alternatively, you can open two terminals, and go in the the `Fluid` and `Solid` directory and run the two following commands
+
+```bash
+preCICE-Lotus-CalculiX/Inverted-Flag/Fluid$ runFluid -np
+```
+
+```bash
+preCICE-Lotus-CalculiX/Inverted-Flag/Solid$ runSolid -np
 ```
 
 To clean all the files generated, simply clean the repo using
 
 ```bash
-./Allclean
+cleanFSI
 ```
+or the individual folders with `cleanSim`.
+
+### Restarting
+
+You can restart a simulation from the last time step provided a `*RESTART,WRITE` card was added in your `calculix.inp` file. Thos will save the last time step and allow to restart from there (or from any time step if you want). To restart from the last time step run
+```bash
+runFluid 1 ./
+```
+in the `Fluid`` directory to restart using the latest time step and
+```bash
+runSolid 1 restart
+```
+in the solid directory. This will moce the `calculix.rout` into a `restart.rin` file with all the restart information, as well as the mesh ans boundary condition information. Restarting requires a `restart.inp` file,  which should have the following format
+
+```
+*RESTART,READ,STEP=
+
+*STEP, NLGEOM, INC=10000000000
+*DYNAMIC, ALPHA=0.0
+ 0.25, 100000
+
+*CLOAD
+ Ninterface, 1, 0.0
+ Ninterface, 2, 0.0
+ Ninterface, 3, 0.0
+
+*NODE FILE,OUTPUT=3D
+ U
+
+*END STEP
+```
+where the `*STEP` card and the following entries are identical to the previous input deck, the header now just has a `*RESTART,READ` card that will open the file `restatrt.rin` file at the desired step, default is the last one saved.
 
 ### Results
 
@@ -55,23 +96,3 @@ Here is the results of the inverted-flag problem for a period of oscillation.
 We can compute the negative finite time Lyapunov exponent (attracting structures) of the flow field
 
 <img width="800" src=figures/lyapunov_inverted_flag.gif>
-
-<!-- ### Post-processing
-
-The fluid is gradually accelerated from zero to one using an hyperbolic profile. The resulting fluid field once the structural motion has settled is shown below.
-
-![Result 1](fluid_render.png)
-
-An analytical expression for the blade deflection has been derived in [Luhar and Nepf](https://doi.org/10.4319/lo.2011.56.6.2003)
-
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{d^2\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?-\frac{d^2\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*}&space;=&space;Ca&space;\int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta&space;d\hat{s}" title="-\frac{d^2\theta}{d\hat{s}^2}\biggr\rvert_{\hat{s}^*} = Ca \int_{\hat{s}^*}^{1}\cos(\theta-\theta^*)\cos^2\theta d\hat{s}" /></a>
-
-with the Cauchy number $Ca$ defined as
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=Ca&space;=&space;\frac{1}{2}\frac{\rho&space;C_dbU^2l^3}{EI}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Ca&space;=&space;\frac{1}{2}\frac{\rho&space;C_dbU^2l^3}{EI}" title="Ca = \frac{1}{2}\frac{\rho C_dbU^2l^3}{EI}" /></a>
-
-
-The results and the analytical solution are shown below
-
-<img src="deflection.png" alt="drawing" width="600"/> -->
